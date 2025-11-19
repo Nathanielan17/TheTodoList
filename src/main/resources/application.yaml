@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: TheTodoList
+  datasource:
+    url: jdbc:mysql://localhost:3306/todoapp?createDatabaseIfNotExist=true
+    username: root
+    password: "#Onceus1029"
+  jpa:
+    show-sql: true
