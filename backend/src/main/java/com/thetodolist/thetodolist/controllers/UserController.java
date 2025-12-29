@@ -28,7 +28,7 @@ public class UserController {
         }
         var user = userMapper.requestToUser(request);
         userRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.userToUserDto(user));
     }
 
     @PostMapping("/{id}/change-password")

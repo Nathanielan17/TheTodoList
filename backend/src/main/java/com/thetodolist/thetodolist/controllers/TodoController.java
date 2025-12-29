@@ -23,7 +23,7 @@ public class TodoController {
     private final TodoRepository todoRepository;
 
     @PostMapping("/{userId}/create")
-    public ResponseEntity<Void> createTodo(
+    public ResponseEntity<ToDoDto> createTodo(
             @PathVariable(name = "userId") Long id,
             @RequestBody CreateTodoRequest request
     ){
@@ -36,7 +36,7 @@ public class TodoController {
         todo.setUser(user);
 
         todoRepository.save(todo);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDoMapper.toTodoDto(todo));
     }
 
     @GetMapping("/{userId}")
