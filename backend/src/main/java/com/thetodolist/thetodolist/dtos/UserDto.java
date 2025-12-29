@@ -3,8 +3,7 @@ package com.thetodolist.thetodolist.dtos;
 import lombok.Data;
 
 @Data
-public class ToDoDto {
+public class UserDto {
     private Long id;
-    private String task;
-    private boolean completed;
+    private String username;
 }
