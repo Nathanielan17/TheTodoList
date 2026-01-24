@@ -9,6 +9,7 @@ import com.thetodolist.thetodolist.repositories.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +23,13 @@ public class TodoController {
     private final ToDoMapper toDoMapper;
     private final TodoRepository todoRepository;
 
-    @PostMapping("/{userId}/create")
+    @PostMapping()
     public ResponseEntity<ToDoDto> createTodo(
-            @PathVariable(name = "userId") Long id,
             @RequestBody CreateTodoRequest request
     ){
-        var user = userRepository.findById(id).orElse(null);
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) authentication.getPrincipal();
+        var user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -39,11 +41,11 @@ public class TodoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(toDoMapper.toTodoDto(todo));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<ToDoDto>> getTodos(
-            @PathVariable(name = "userId") Long id
-    ){
-        var user = userRepository.findById(id).orElse(null);
+    @GetMapping
+    public ResponseEntity<List<ToDoDto>> getTodos(){
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) authentication.getPrincipal();
+        var user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
