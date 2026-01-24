@@ -1,16 +1,22 @@
 package com.thetodolist.thetodolist.controllers;
 
+import com.thetodolist.thetodolist.config.JwtConfig;
+import com.thetodolist.thetodolist.dtos.JwtResponse;
 import com.thetodolist.thetodolist.dtos.LoginRequest;
 import com.thetodolist.thetodolist.mappers.UserMapper;
 import com.thetodolist.thetodolist.repositories.UserRepository;
+import com.thetodolist.thetodolist.services.JwtService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -19,29 +25,54 @@ import java.util.Map;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
+    private final JwtConfig jwtConfig;
 
     @PostMapping(value = "/login")
-    public ResponseEntity<?> login(
-            @RequestBody LoginRequest request
+    public ResponseEntity<JwtResponse> login(
+            @RequestBody LoginRequest request,
+            HttpServletResponse response
     ){
-        var user = userRepository.findByUsername(request.getUsername()).orElse(null);
-        if(user == null){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("user", "username does not exist")
-            );
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+
+        var user = userRepository.findByUsername(request.getUsername()).orElseThrow();
+        var accessToken = jwtService.generateAccessToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+
+        var cookie = jwtService.generateCookie(refreshToken);
+
+        response.addCookie(cookie);
+
+
+        return ResponseEntity.ok(new JwtResponse(accessToken));
+    }
+
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<JwtResponse> refresh(
+            @CookieValue(value = "refreshToken") String refreshToken,
+            HttpServletResponse response
+    ){
+        if (!jwtService.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        if(!user.getPassword().equals(request.getPassword())){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(
-                    Map.of("user", "password does not match")
-            );
-        }
+        var userId = jwtService.getUserIdFromToken(refreshToken);
+        var user = userRepository.findById(userId).orElseThrow();
+        var accessToken = jwtService.generateAccessToken(user);
+
+        return ResponseEntity.ok(new JwtResponse(accessToken));
+    }
 
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(userMapper.userToUserDto(user));
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Void> handleBadCredentialsException(){
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 }
