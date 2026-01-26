@@ -1,10 +1,11 @@
 import {useEffect, useState} from 'react'
-import {Input, Stack, Title, ScrollArea} from '@mantine/core';
+import {Input, Stack, Title, ScrollArea, Box} from '@mantine/core';
 import type {taskType} from './TaskComponent';
 import { useTasks } from '../../lib/useTasks'
 import { useForm  } from '@mantine/form';
 import { TaskComponent, createTaskObj } from './TaskComponent'
 import { TaskEditModal } from './TaskEditModal'
+import { TaskEditDrawer } from './TaskEditDrawer'
 import { useDisclosure } from '@mantine/hooks';
 import * as taskRepo from "../../repositories/tasks/taskRepository.tsx";
 import * as endpoints from "../../config/endpoints";
@@ -61,40 +62,125 @@ export function TaskManager(){
         }
     });
 
+    const { completedTasks, incompleteTasks } = tasks.reduce<{
+        completedTasks: taskType[];
+        incompleteTasks: taskType[];
+    }>(
+        (acc, task) => {
+            if (task.taskStatus){
+                acc.completedTasks.push(task)
+            }
+            else {
+                acc.incompleteTasks.push(task)
+            }
+            return acc;
+        }, { completedTasks: [], incompleteTasks: [] }
+    );
+
     return (
-        <>
-            <Stack
-                h={"90vh"}
-                align={"stretch"}
-                justify={"space-between"}
-                gap={"xs"}
-            >
+        <Box
+
+        >
+            {/*<Stack*/}
+            {/*    h={"90vh"}*/}
+            {/*    align={"stretch"}*/}
+            {/*    justify={"space-between"}*/}
+
+            {/*    // gap={"xs"}*/}
+            {/*>*/}
+
                 <Title order={1}>List</Title>
                 <Title order={4}>Tasks</Title>
+                <br/>
+                <TaskEditDrawer form={taskEditForm} opened={opened} close={close} editTask={editTaskState} />
 
-                <TaskEditModal form={taskEditForm} opened={opened} close={close} editTask={editTaskState} />
+                {/*{incompleteTasks.length > 0 ? (*/}
+                {/*    <ScrollArea>*/}
+                {/*        <Stack*/}
+                {/*            gap={"1"}*/}
+                {/*        >*/}
+                {/*            {incompleteTasks.map((task) =>*/}
 
-                <ScrollArea>
-                    <Stack
-                        gap={"sm"}
-                    >
-                        {tasks.map((task) =>
-                            <TaskComponent
-                                taskInfo={task}
-                                taskEditForm={taskEditForm}
-                                open={open}
-                                deleteTask={deleteTaskState}
-                                editTask={editTaskState}/>)}
-                    </Stack>
-                </ScrollArea>
+                {/*                (<TaskComponent*/}
+                {/*                        taskInfo={task}*/}
+                {/*                        taskEditForm={taskEditForm}*/}
+                {/*                        open={open}*/}
+                {/*                        deleteTask={deleteTaskState}*/}
+                {/*                        editTask={editTaskState}/>*/}
+                {/*                )*/}
+
+                {/*            )}*/}
+                {/*        </Stack>*/}
+                {/*    </ScrollArea>*/}
+                {/*)}*/}
+
+
+
+                    <Box>
+                    {incompleteTasks.length > 0 ? (
+                            <Stack
+                                gap={"1"}
+                            >
+                                {incompleteTasks.map((task) =>
+
+                                    (<TaskComponent
+                                            taskInfo={task}
+                                            taskEditForm={taskEditForm}
+                                            open={open}
+                                            deleteTask={deleteTaskState}
+                                            editTask={editTaskState}/>
+                                    )
+
+                                )}
+                            </Stack>
+                    ): null}
+                    </Box>
+                    <br/>
+
+                    <Box>
+                    {completedTasks.length > 0 ? (
+                        <>
+                            <Title order={5}>Completed</Title>
+                            <br/>
+
+                            <Stack
+                                gap={"1"}
+                            >
+                                {completedTasks.map((task) =>
+
+                                    (<TaskComponent
+                                            taskInfo={task}
+                                            taskEditForm={taskEditForm}
+                                            open={open}
+                                            deleteTask={deleteTaskState}
+                                            editTask={editTaskState}/>
+                                    )
+
+                                )}
+                            </Stack>
+
+                        </>
+
+                    ): null}
+                    </Box>
 
                 <Input
                     placeholder={"Add a Task"}
                     value={newTask} onChange={(e) => setNewTask(e.target.value)}
                     onKeyDown={(e) => handleAddTask(e)}
+                    style={{
+                        position: "sticky",
+                        bottom: 0,
+                        zIndex: 100,
+                        padding: '1rem',
+                        flexDirection: 'row',
+                        backdropFilter: 'blur(1px)'
+                    }}
                 />
-            </Stack>
-        </>
+
+
+            {/*</Stack>*/}
+        </Box>
     );
 }
 
