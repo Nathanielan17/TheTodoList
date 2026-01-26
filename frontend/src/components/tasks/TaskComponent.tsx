@@ -1,49 +1,9 @@
-import {ActionIcon, Checkbox, Group, Menu, Paper, Modal, TextInput, Button} from '@mantine/core';
+import {ActionIcon, Group, Menu, Paper, Text, Radio, Divider, CheckIcon} from '@mantine/core';
 import {IconDotsVertical, IconTrash} from '@tabler/icons-react'
 import type { UseFormReturnType } from '@mantine/form';
 import * as taskRepo from "../../repositories/tasks/taskRepository";
 import * as endpoints from "../../config/endpoints";
 
-interface TaskFormModalProps {
-    ModalForm: UseFormReturnType<{taskDesc: string, taskStatus: boolean}>,
-    opened: boolean,
-    open: () => void,
-    close: () => void,
-    TaskInfo: taskType,
-    editTask: (task: taskType) => void,
-    deleteTask: (taskId: bigint) => void
-}
-
-
-
-export function TaskEditModal (props: TaskFormModalProps) {
-    const form = props.ModalForm;
-    return <>
-            <Modal opened={props.opened} onClose={props.close} title={"Edit Modal"} centered>
-                <form onSubmit={form.onSubmit((values) =>
-                {
-                    props.editTask({...props.TaskInfo, taskDesc: values.taskDesc, taskStatus: values.taskStatus})
-                    props.close();
-                })}>
-                    <TextInput
-                        label={"Task"}
-                        key={form.key("taskDesc")}
-                        {...form.getInputProps("taskDesc")}
-
-                    />
-                    <Checkbox
-                        mt={"md"}
-                        label={"Status"}
-                        key={form.key("taskStatus")}
-                        {...form.getInputProps("taskStatus", {type: 'checkbox'})}
-                    />
-                    <Group justify="flex-end" mt="md">
-                        <Button type="submit">Submit</Button>
-                    </Group>
-                </form>
-            </Modal>
-        </>
-}
 
 interface taskMenuProps {
     task: taskType,
@@ -60,13 +20,16 @@ function TaskMenu(props: taskMenuProps){
     return <>
         <Menu>
             <Menu.Target>
-                <ActionIcon size="sm">
+                <ActionIcon size="sm"
+                    onClick={(e) => e.stopPropagation()}
+                >
                     <IconDotsVertical/>
                 </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
                 <Menu.Item
-                    onClick={() => {
+                    onClick={(e) => {
+                        e.stopPropagation()
                         form.setValues(
                             {
                                 taskId: task.taskId,
@@ -78,12 +41,13 @@ function TaskMenu(props: taskMenuProps){
                         open();
                     }}
                 >
-                    Edit
+                    <Text>Edit</Text>
                 </Menu.Item>
                 <Menu.Item
                     color={"red"}
-                    leftSection={<IconTrash size={14}/>}
-                    onClick={() => {
+                    rightSection={<IconTrash size={14}/>}
+                    onClick={(e) => {
+                        e.stopPropagation()
                         taskRepo.deleteTask(`http://localhost:8080/todos/${task.taskId}`, task.taskId).then(
                             (success) => {
                                 if (success){
@@ -96,7 +60,9 @@ function TaskMenu(props: taskMenuProps){
                         )
                     }}
                 >
-                    Delete
+                    <Text>
+                        Delete
+                    </Text>
                 </Menu.Item>
             </Menu.Dropdown>
         </Menu>
@@ -136,19 +102,42 @@ const handleTaskEdit = async (task: taskType, editTask: (task: taskType) => void
     success ? editTask(task) : alert("Could not edit task");
 }
 
+const handleTaskClick = (e: React.MouseEvent, props: TaskComponentProps) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (e)
+    props.taskEditForm.setValues(
+        {
+            taskId: props.taskInfo.taskId,
+            taskDesc: props.taskInfo.taskDesc,
+            taskStatus: props.taskInfo.taskStatus
+        }
+    );
+
+    props.taskEditForm.setFieldValue('taskStatus', props.taskInfo.taskStatus);
+    props.open();
+}
+
+
 export function TaskComponent(props : TaskComponentProps){
     // const taskInfo = props.taskInfo;
     return <>
+        <Divider/>
         <Paper
             key={props.taskInfo.taskId}
-            p={"sm"}
-            withBorder
+            p={"lg"}
+            // withBorder
+            // onClick={(e) => console.log("Click")}
+            onClick={(e) => handleTaskClick(e, props)}
         >
             <Group justify={"space-between"}>
                 <Group>
-                    <Checkbox
+                    <Radio
+                        icon={CheckIcon}
                         checked={props.taskInfo.taskStatus}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation()
                             handleTaskEdit(
                                 {
                                     ...props.taskInfo,
@@ -157,16 +146,23 @@ export function TaskComponent(props : TaskComponentProps){
                                 props.editTask).then()
                         }}
                     />
-                    {props.taskInfo.taskDesc}
+                    <Text
+                        {...(props.taskInfo.taskStatus && {td: "line-through", c:"gray"})}
+                    >
+                        {props.taskInfo.taskDesc}
+                    </Text>
+
                 </Group>
-                <TaskMenu
-                    task={props.taskInfo}
-                    taskEditForm={props.taskEditForm}
-                    open={props.open}
-                    deleteTask={props.deleteTask}
-                />
+                {/*<TaskMenu*/}
+                {/*    task={props.taskInfo}*/}
+                {/*    taskEditForm={props.taskEditForm}*/}
+                {/*    open={props.open}*/}
+                {/*    deleteTask={props.deleteTask}*/}
+
+                {/*/>*/}
             </Group>
         </Paper>
+        {/*<Divider/>*/}
     </>
 }
 

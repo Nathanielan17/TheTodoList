@@ -10,27 +10,31 @@ function HomePage(){
     return (
         <AppShell
             padding="md"
+            header={{ height: 60 }}
             navbar={{
                 width: 300,
                 breakpoint: 'sm',
                 // collapsed: { mobile: !opened },
             }}
         >
-            <AppShell.Navbar>Navbar</AppShell.Navbar>
-
-            <AppShell.Main>
+            <AppShell.Header>
                 <Group justify={"space-between"}>
-                    <Title>Tasks:</Title>
+                    <Title>Basic</Title>
                     <Avatar component="a" radius="xl" src={null} alt="Profile" size="lg" color="orange" onClick={() => navigate('/profile')}/>
                 </Group>
-                <Grid>
-                    <Grid.Col span={2}>1</Grid.Col>
+            </AppShell.Header>
+            <AppShell.Navbar>Navbar</AppShell.Navbar>
+            <AppShell.Main
+            bg={"white"}
+            >
+                <Grid style={{ flex: 1, margin: 0 }}>
+                    <Grid.Col span={1}>1</Grid.Col>
                     <Grid.Col span={8}
+                              style={{ display: 'flex', flexDirection: 'column' }}
                     >
                         <TaskManager/>
-
                     </Grid.Col>
-                    <Grid.Col span={2}>3</Grid.Col>
+                    <Grid.Col span={3}>3</Grid.Col>
                 </Grid>
             </AppShell.Main>
         </AppShell>
