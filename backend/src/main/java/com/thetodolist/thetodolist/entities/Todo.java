@@ -25,4 +25,8 @@ public class Todo {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToOne()
+    @JoinColumn(name = "list_id")
+    private TaskList taskList;
+
 }

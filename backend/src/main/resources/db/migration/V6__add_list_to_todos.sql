@@ -1,0 +1,11 @@
+ALTER TABLE todos
+    ADD list_id BIGINT NULL;
+
+ALTER TABLE todos
+    ADD CONSTRAINT FK_TODOS_ON_LIST FOREIGN KEY (list_id) REFERENCES tasklists (id);
+
+ALTER TABLE todos
+    MODIFY completed BIT(1) NULL;
+
+ALTER TABLE todos
+    MODIFY user_id BIGINT NULL;
