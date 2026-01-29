@@ -5,4 +5,4 @@ A full stack to-do application! This project is designed in mind to be built aro
 ## How Its Made
 On the frontend, HTML/CSS, React + Typescript, and Mantine is used. On the backend is Java Springboot and a MySQL database. Security revolves around JWT Authentication. Additionally in the future OAuth + OIDC will be used as well.
 
-More is to be added as I continue optimizing and adding new features! 
+Main Idea is to go overboard on features and design. More is to be added soon!
